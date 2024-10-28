@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='qa-data',  
-    version='0.0.1',   
+    version='0.1.2',   
     author='Um Changyong', 
     author_email='eum6211@gmail.com', 
     description='generate dataset to fine-tune llm', 

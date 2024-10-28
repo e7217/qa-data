@@ -1,8 +1,13 @@
 from typing import Any, List
+
 from pydantic import BaseModel
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import PydanticOutputParser
 from langchain_core.language_models.base import BaseLanguageModel
+
+class QA(BaseModel):
+    question: Any
+    answer: Any
 
 class Creator:
     
@@ -11,7 +16,7 @@ class Creator:
             raise ValueError("llm shouldn't be null")
         self.llm = llm
         
-    def create_question_variants(self, response_model: BaseModel, questions = List[str], answer = str):
+    def create_question_variants(self, response_model: BaseModel, questions:List[str] = None, answer:BaseModel = None):
         
         if response_model is None:
             raise ValueError("response_model shouldn't be null")
@@ -37,9 +42,13 @@ class Creator:
         
         chain = prompt | self.llm | output_parser
         result = chain.invoke(query)
-        return result
+        result_item = [
+            QA(question=q, answer=answer)
+            for q in result.answer
+        ]
+        return result_item
         
-    def create_answer_variants(self, response_model=BaseModel, question = str, answers = List[str]):
+    def create_answer_variants(self, response_model=BaseModel, question = str, answers = List[Any]):
                 
         if response_model is None:
             raise ValueError("response_model shouldn't be null")
@@ -65,9 +74,13 @@ class Creator:
         
         chain = prompt | self.llm | output_parser
         result = chain.invoke(query)
-        return result
+        result_item = [
+            QA(question=question, answer=a)
+            for a in result
+        ]
+        return result_item
         
-    def create_dataset_variants(self, response_model=BaseModel, questions = List[str], qa_sample = List[Any], expend_question : bool = True):
+    def create_dataset_variants(self, response_model=BaseModel, questions = List[str], qa_sample = List[QA], expend_question : bool = True):
         
         if response_model is None:
             raise ValueError("response_model shouldn't be null")
@@ -99,5 +112,10 @@ class Creator:
         
         chain = prompt | self.llm | output_parser
         result = chain.invoke(query)
-        return result
+        result_item = [
+            QA(question=_["question"], answer=_["answer"])
+            for _ in result.answer
+        ]
+        return result_item
+        
         
